@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>bresenham</title>
+	<style>
+		body {
+			margin: 0;
+			overflow: hidden;
+		}
+	</style>
+</head>
+<body>
+	<canvas id="canvas"></canvas>
+	<script>
+		const canvas = document.getElementById('canvas');
+		const ctx = canvas.getContext('2d');
+
+		const canvasW = canvas.width = 600;
+		const canvasH = canvas.height = 600;
+
+        const squadsInX = squadsInY = 50;
+
+		const squadWH = canvasW/squadsInX;
+
+        const lineStartX = 25 * squadWH;
+        const lineStartY = 25 * squadWH;
+
+        const lineStartXTwo = 2 * squadWH;
+        const lineStartYTwo = 2 * squadWH;
+
+        let mouseX = null;
+        let mouseY = null;
+
+		function drawLine(x, y) {
+			ctx.beginPath();
+			ctx.rect(x, y, squadWH, squadWH);
+			ctx.strokeStyle = 'red';
+			ctx.lineWidth = 4;
+			ctx.stroke();
+		}
+
+		function bresenhamLine(x1, y1, x2, y2) {
+
+		    // Thanks to @js_tut
+		    // https://www.freecodecamp.org/news/how-to-code-your-first-algorithm-draw-a-line-ca121f9a1395/
+
+		    let x, y, dx, dy, dx1, dy1, px, py, xe, ye, i;
+		    
+		    dx = x2 - x1;
+		    dy = y2 - y1;
+		    
+		    dx1 = Math.abs(dx);
+		    dy1 = Math.abs(dy);
+		    
+		    px = 2 * dy1 - dx1;
+		    py = 2 * dx1 - dy1;
+		    
+		    if (dy1 <= dx1) {
+		        
+		        if (dx >= 0) {
+		            x = x1; y = y1; xe = x2;
+		        } else { 
+		            x = x2; y = y2; xe = x1;
+		        }
+		        
+		        drawLine(x, y); 
+		        
+		        for (i = 0; x < xe; i++) {
+		            x = x + squadWH;
+		            
+		            if (px < 0) {
+		                px = px + 2 * dy1;
+		            } else {
+		                if ((dx < 0 && dy < 0) || (dx > 0 && dy > 0)) {
+		                    y = y + squadWH;
+		                } else {
+		                    y = y - squadWH;
+		                }
+		                px = px + 2 * (dy1 - dx1);
+		            }
+		            
+		            drawLine(x, y);
+		        }
+		        
+		    } else { 
+		        
+		        if (dy >= 0) {
+		            x = x1; y = y1; ye = y2;
+		        } else { 
+		            x = x2; y = y2; ye = y1;
+		        }
+		        
+		        drawLine(x, y); 
+		        
+		        for (i = 0; y < ye; i++) {
+		            y = y + squadWH;
+		            
+		            if (py <= 0) {
+		                py = py + 2 * dx1;
+		            } else {
+		                if ((dx < 0 && dy<0) || (dx > 0 && dy > 0)) {
+		                    x = x + squadWH;
+		                } else {
+		                    x = x - squadWH;
+		                }
+		                py = py + 2 * (dx1 - dy1);
+		            }
+
+		            drawLine(x, y);
+		        }
+		    }
+		}
+
+		function drawSquad(posX, posY) {
+        	ctx.beginPath();
+        	ctx.rect(posX, posY, squadWH, squadWH);
+			ctx.strokeStyle = 'black';
+			ctx.lineWidth = .5;
+        	ctx.stroke();
+
+        	// see coordinates
+        	// ctx.fillText(posX/60 + ', ' + posY/60, posX + 15, posY + 15);
+        	// ctx.fillStyle = 'red';
+		}
+
+		function drawGrid() {
+
+            let posX = 0;
+            let posY = 0;
+
+            let mouseSquadX = null;
+            let mouseSquadY = null;
+
+            for(let i = 0; i < squadsInX; i++) {
+                posY = 0;
+                for(let j = 0; j < squadsInY; j++) {
+
+                	// see entire grid
+                	// drawSquad(posX, posY);
+
+                	if( mouseX >= posX && mouseX <= posX + squadWH ) mouseSquadX = posX;
+                	if( mouseY >= posY && mouseY <= posY + squadWH ) mouseSquadY = posY;
+
+                    posY += squadWH;
+                }
+                posX += squadWH;
+            }
+
+            bresenhamLine(lineStartX, lineStartY, mouseSquadX, mouseSquadY);
+
+		}
+
+		canvas.addEventListener('mousemove', function(e){
+			mouseX = e.pageX;
+			mouseY = e.pageY;
+			ctx.clearRect(0, 0, canvasW, canvasH);
+			drawGrid();
+		});
+
+	</script>
+</body>
+</html>
