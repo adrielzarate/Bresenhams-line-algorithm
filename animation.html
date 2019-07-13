@@ -23,22 +23,97 @@
 
 		const squadWH = canvasW/squadsInX;
 
-        const lineStartX = 25 * squadWH;
-        const lineStartY = 25 * squadWH;
+        const lineStartX = 5 * squadWH;
+        const lineStartY = 5 * squadWH;
 
-        const lineStartXTwo = 2 * squadWH;
-        const lineStartYTwo = 2 * squadWH;
+        const lineStartX2 = 1 * squadWH;
+        const lineStartY2 = 1 * squadWH;
 
         let mouseX = null;
         let mouseY = null;
 
-		function drawLine(x, y) {
-			ctx.beginPath();
-			ctx.rect(x, y, squadWH, squadWH);
-			ctx.strokeStyle = 'red';
-			ctx.lineWidth = 4;
-			ctx.stroke();
+        // Pattern
+
+        let allPatterns = [];
+        let patternsInUse = [];
+
+        function ActualPattern(x, y) {
+            this.x = x;
+            this.y = y;
+        }
+
+        function Pattern(x, y) {
+            this.x = x;
+            this.y = y;
+            this.w = 1;
+            this.h = 1;
+            this.maxW = squadWH;
+            this.maxH = squadWH;
+            this.finished = false;
+        }
+
+        Pattern.prototype.drawPattern = function() {
+            ctx.beginPath();
+            ctx.rect(this.x, this.y, this.w, this.h);
+            ctx.stroke();
+        }
+
+        Pattern.prototype.growPattern = function() {
+            this.drawPattern();
+            if (this.w < this.maxW) {
+                this.w += 1;
+            }
+            if (this.h < this.maxH) {
+                this.h += 1;
+            }
+        }
+
+        Pattern.prototype.shrinkPattern = function() {
+            this.drawPattern();
+            if (this.w > 1) {
+                this.w -= 1;
+            }
+            if (this.h > 1) {
+                this.h -= 1;
+            }
+            if(this.w === 1 && this.h === 1) {
+            	this.finished = true
+            }
+        }
+
+        // END Pattern
+
+        function removeDuplicatedObjs(obj) {
+			return obj.filter( (item, index, self) =>
+			  index === self.findIndex( t => (t.x === item.x && t.y === item.y) )
+			);
+        }
+
+		function fillAllPatterns(x, y) {
+			patternsInUse.push(new ActualPattern(x, y));
+			allPatterns.push(new Pattern(x, y));
+
+			// just unique patterns
+			allPatterns = removeDuplicatedObjs(allPatterns);
+			patternsInUse = removeDuplicatedObjs(patternsInUse);
 		}
+
+		function drawLines() {
+
+			const indexesGrow = patternsInUse.map( item => allPatterns.findIndex( t => ( t.x === item.x && t.y === item.y )));
+
+			for( let i = 0; i < allPatterns.length; i++ ) {
+
+				if( indexesGrow.includes(i) ) {
+					allPatterns[i].growPattern();
+				} else {
+					allPatterns[i].shrinkPattern();
+					if( allPatterns[i].finished ) allPatterns.splice(i, 1);
+				}
+			}	
+
+		}
+
 
 		function bresenhamLine(x1, y1, x2, y2) {
 
@@ -64,7 +139,7 @@
 		            x = x2; y = y2; xe = x1;
 		        }
 		        
-		        drawLine(x, y); 
+		        fillAllPatterns(x, y);
 		        
 		        for (i = 0; x < xe; i++) {
 		            x = x + squadWH;
@@ -80,7 +155,7 @@
 		                px = px + 2 * (dy1 - dx1);
 		            }
 		            
-		            drawLine(x, y);
+		            fillAllPatterns(x, y);
 		        }
 		        
 		    } else { 
@@ -91,7 +166,7 @@
 		            x = x2; y = y2; ye = y1;
 		        }
 		        
-		        drawLine(x, y); 
+		        fillAllPatterns(x, y);
 		        
 		        for (i = 0; y < ye; i++) {
 		            y = y + squadWH;
@@ -107,8 +182,9 @@
 		                py = py + 2 * (dx1 - dy1);
 		            }
 
-		            drawLine(x, y);
+		            fillAllPatterns(x, y);
 		        }
+
 		    }
 		}
 
@@ -118,10 +194,6 @@
 			ctx.strokeStyle = 'black';
 			ctx.lineWidth = .5;
         	ctx.stroke();
-
-        	// see coordinates
-        	// ctx.fillText(posX/60 + ', ' + posY/60, posX + 15, posY + 15);
-        	// ctx.fillStyle = 'red';
 		}
 
 		function drawGrid() {
@@ -133,29 +205,40 @@
             let mouseSquadY = null;
 
             for(let i = 0; i < squadsInX; i++) {
+
                 posY = 0;
+
                 for(let j = 0; j < squadsInY; j++) {
 
                 	// see entire grid
                 	// drawSquad(posX, posY);
 
-                	if( mouseX >= posX && mouseX <= posX + squadWH ) mouseSquadX = posX;
-                	if( mouseY >= posY && mouseY <= posY + squadWH ) mouseSquadY = posY;
+                	if ( mouseX >= posX && mouseX <= posX + squadWH ) mouseSquadX = posX;
+                	if ( mouseY >= posY && mouseY <= posY + squadWH ) mouseSquadY = posY;
 
                     posY += squadWH;
                 }
+
                 posX += squadWH;
             }
 
             bresenhamLine(lineStartX, lineStartY, mouseSquadX, mouseSquadY);
+            bresenhamLine(lineStartX2, lineStartY2, mouseSquadX, mouseSquadY);
 
+            drawLines();
 		}
+
+		function draw() {
+			ctx.clearRect(0, 0, canvasW, canvasH);
+			patternsInUse = [];
+			drawGrid();
+			requestAnimationFrame(draw);
+		}
+		draw();
 
 		canvas.addEventListener('mousemove', function(e){
 			mouseX = e.pageX;
 			mouseY = e.pageY;
-			ctx.clearRect(0, 0, canvasW, canvasH);
-			drawGrid();
 		});
 
 	</script>
