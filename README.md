@@ -1,5 +1,5 @@
 ##### Original
-![Screenshot](original.gif  =220x220)
+<img src="original.gif" alt="original" width="220"/>
 
 ##### With animation pattern
-![Screenshot](animation.gif  =220x220)
+<img src="animation.gif" alt="animation" width="220"/>
