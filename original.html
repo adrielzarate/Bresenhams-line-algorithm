@@ -103,7 +103,7 @@
 		function drawSquad(posX, posY) {
         	ctx.beginPath();
         	ctx.rect(posX, posY, squadWH, squadWH);
-			ctx.strokeStyle = 'black';
+			ctx.strokeStyle = '#999';
 			ctx.lineWidth = .5;
         	ctx.stroke();
         	// see coordinates
@@ -119,7 +119,7 @@
                 posY = 0;
                 for(let j = 0; j < squadsInY; j++) {
                 	// see entire grid
-                	// drawSquad(posX, posY);
+                	drawSquad(posX, posY);
                 	if( mouseX >= posX && mouseX <= posX + squadWH ) mouseSquadX = posX;
                 	if( mouseY >= posY && mouseY <= posY + squadWH ) mouseSquadY = posY;
                     posY += squadWH;
